@@ -1,0 +1,16 @@
+name: Workflow Events
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '*/5 * * * *' # Runs every 5 minutes
+  workflow_dispatch:
+
+jobs:
+  echo-hello:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Show the trigger
+        run: echo "This workflow was triggered by a(n) ${{ github.event_name }} event."
