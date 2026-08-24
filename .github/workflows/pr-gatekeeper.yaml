@@ -15,7 +15,7 @@ jobs:
         run: echo "PR is being merged into ${{ github.base_ref }}"
 
       - name: Show PR number
-        run: echo "PR Number: ${{ github.event.pull_request.number }}"
+        run: echo 'PR Number: ${{ github.event.pull_request.number }}'
 
       - name: Complete
         run: echo "Gatekeeper checks complete"

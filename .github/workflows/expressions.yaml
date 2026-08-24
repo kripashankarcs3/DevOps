@@ -1,0 +1,37 @@
+name: Using Expressions
+run-name: Usng Expressions | DEBUG - ${{ inputs.debug && 'ON' || 'OFF' }}
+
+# DEBUG - ON || DEBUG - OFF
+
+on:
+  workflow_dispatch:
+    inputs:
+      debug:
+        type: boolean
+        default: false
+
+jobs:
+  echo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: '[Debug] Print start-up data'
+        if: inputs.debug
+        run: |
+          echo "Debug mode is ON"
+          echo "Workflow name: ${{ github.workflow }}"
+          echo "Run ID: ${{ github.run_id }}"
+          echo "Run number: ${{ github.run_number }}"
+          echo "Event name: ${{ github.event_name }}"
+          echo "Actor: ${{ github.actor }}"
+          echo "Repository: ${{ github.repository }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "SHA: ${{ github.sha }}"
+
+      - name: '[Debug] Print when triggered from main'
+        if: inputs.debug && github.ref_name == 'main'
+        run: |
+          echo "This workflow was triggered from the main branch."
+
+      - name: Greeting
+        run: |
+          echo "Hello, ${{ github.actor }}! Welcome to the Using Expressions workflow."
