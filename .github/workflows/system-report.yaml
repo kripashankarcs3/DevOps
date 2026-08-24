@@ -1,0 +1,60 @@
+name: System Report
+
+on:
+  push:
+
+jobs:
+  system-info:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Print system details
+        run: |
+          echo "OS name: $(uname -s)"
+          echo "Kernel version: $(uname -r)"
+
+      - name: Print free disk space
+        run: df -h /
+
+      - name: Print current date and time
+        run: date
+
+      - name: Install tree
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tree
+
+      - name: Show home directory tree
+        run: tree -L 2 ~
+
+  tool-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install jq
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      - name: Create report file
+        run: |
+          cat > report.json <<'EOF'
+          {
+            "runner": "ubuntu-latest",
+            "tool": "jq",
+            "status": "ready"
+          }
+          EOF
+
+      - name: Read a value with jq
+        run: |
+          jq -r '.runner' report.json
+
+      - name: Print installed tool versions
+        run: |
+          python3 --version
+          git --version
+          jq --version
+
+      - name: Complete report
+        run: echo "Report complete"

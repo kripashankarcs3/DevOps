@@ -1,0 +1,29 @@
+name: Checkout Proof
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  prove:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: List contents before checkout
+        run: |
+          pwd
+          ls -la
+
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: List contents after checkout
+        run: |
+          ls -la
+          find . -maxdepth 1 -type f | wc -l
+
+      - name: Explain the listings
+        run: echo "The first listing shows the empty starting runner directory, and the second shows the repository files after checkout."
+
+      - name: Complete proof
+        run: echo "Proof captured"

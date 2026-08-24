@@ -1,0 +1,33 @@
+name: Subfolder Builder
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Print current working directory
+        run: pwd
+
+      - name: List files in working directory
+        run: ls -la
+
+      - name: Note checkout behavior
+        run: echo "The checkout step was not affected by the default working directory because defaults only apply to run steps, not to uses actions."
+
+      - name: Complete build
+        run: echo "Build folder confirmed"

@@ -1,0 +1,10 @@
+{
+  "name": "release-train-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Small Node service used by the release train workflow.",
+  "main": "index.js",
+  "scripts": {
+    "test": "node --test"
+  }
+}
