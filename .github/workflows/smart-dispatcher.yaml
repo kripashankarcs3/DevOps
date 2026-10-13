@@ -1,0 +1,112 @@
+name: Smart Dispatcher
+
+run-name: ${{ format('Smart Dispatcher | {0} | owner={1}{2}', inputs.risk_level == 'low' && 'LOW' || inputs.risk_level == 'medium' && 'MEDIUM' || inputs.risk_level == 'high' && 'HIGH' || 'CRITICAL', inputs.owner, inputs.dry_run && ' | DRY-RUN' || '') }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      risk_level:
+        description: Choose the incident risk level
+        type: choice
+        required: true
+        default: low
+        options:
+          - low
+          - medium
+          - high
+          - critical
+      notify:
+        description: Notify the owner
+        type: boolean
+        required: true
+        default: false
+      dry_run:
+        description: Simulate the workflow without executing
+        type: boolean
+        required: true
+        default: false
+      owner:
+        description: Owner of the incident
+        type: string
+        required: false
+      components:
+        description: Comma-separated components
+        type: string
+        required: false
+
+jobs:
+  classify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Print components
+        run: echo "Components: ${{ inputs.components }}"
+
+      - name: Check component mentions
+        run: |
+          echo "Mentions database? ${{ contains(inputs.components, 'database') }}"
+          echo "Mentions auth? ${{ contains(inputs.components, 'auth') }}"
+
+      - name: Check owner and trailing comma
+        run: |
+          echo "Owner starts with A? ${{ startsWith(inputs.owner, 'A') }}"
+          echo "Components ends with a comma? ${{ endsWith(inputs.components, ',') }}"
+
+      - name: Natural summary
+        run: echo "${{ format('Risk level {0} is owned by {1} and touches components: {2}.', inputs.risk_level, inputs.owner, inputs.components) }}"
+
+  gate:
+    runs-on: ubuntu-latest
+    needs: classify
+
+    steps:
+      - name: Database gate
+        if: ${{ (inputs.risk_level == 'high' || inputs.risk_level == 'critical') && contains(inputs.components, 'database') }}
+        run: echo "Condition met: risk is high or critical and components mention database."
+
+      - name: Notify gate
+        if: ${{ inputs.risk_level == 'critical' || inputs.notify }}
+        run: echo "Condition met: risk is critical or notify is ticked."
+
+      - name: Dry-run gate
+        if: ${{ !inputs.dry_run && inputs.risk_level != 'low' }}
+        run: echo "Condition met: dry_run is off and risk level is not low."
+
+  execute:
+    runs-on: ubuntu-latest
+    needs: gate
+    if: ${{ always() }}
+
+    steps:
+      - name: Forced dry-run failure
+        id: forced_failure
+        if: ${{ inputs.dry_run }}
+        run: |
+          echo "Dry run requested; forcing a non-zero exit."
+          exit 1
+
+      - name: Stop after dry run failure
+        if: ${{ failure() }}
+        run: echo "Dry run stopped before execution"
+
+      - name: Proceed with execution
+        if: ${{ success() && !failure() }}
+        run: echo "Execution proceeded"
+
+      - name: Job status summary
+        if: ${{ always() }}
+        run: |
+          echo "Gate job result: ${{ needs.gate.result }}"
+          echo "Execute job status: ${{ job.status }}"
+
+  close:
+    runs-on: ubuntu-latest
+    needs: execute
+    if: ${{ always() }}
+
+    steps:
+      - name: Print close summary
+        run: echo "${{ format('Risk {0} for {1}; dry run: {2}; CLOSED', inputs.risk_level, inputs.owner, inputs.dry_run) }}"
+
+      - name: Close dispatcher
+        run: echo "Dispatcher closed"
