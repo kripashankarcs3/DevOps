@@ -1,0 +1,31 @@
+# RollingUpdate: pods ek-ek karke replace hote hain (zero downtime)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-rolling
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1        # ek extra naya pod ban sakta hai
+      maxUnavailable: 0  # koi bhi purana pod tab tak nahi hatega jab tak naya ready na ho
+  selector:
+    matchLabels:
+      app: nginx-rolling
+  template:
+    metadata:
+      labels:
+        app: nginx-rolling
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.25
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 2
+            periodSeconds: 3
