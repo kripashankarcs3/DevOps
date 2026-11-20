@@ -1,0 +1,16 @@
+services:
+  web:
+    build: .
+    image: web-${ROLL_NO}:v1
+    container_name: web-${ROLL_NO}
+    ports:
+      - "${HOST_PORT}:80"
+    volumes:
+      - ./site:/usr/share/nginx/html
+    environment:
+      - STUDENT_ROLL=${ROLL_NO}
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:80/"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
